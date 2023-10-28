@@ -1,0 +1,144 @@
+<html>
+<head>
+<title>main.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+main.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">os.path</span>
+<span class="s0">import </span><span class="s1">datetime</span>
+<span class="s0">import </span><span class="s1">pickle</span>
+<span class="s0">import </span><span class="s1">subprocess</span>
+
+<span class="s0">import </span><span class="s1">tkinter </span><span class="s0">as </span><span class="s1">tk</span>
+<span class="s0">import </span><span class="s1">cv2</span>
+<span class="s0">from </span><span class="s1">PIL </span><span class="s0">import </span><span class="s1">Image</span><span class="s0">, </span><span class="s1">ImageTk</span>
+<span class="s0">import </span><span class="s1">face_recognition</span>
+
+<span class="s0">import </span><span class="s1">util</span>
+<span class="s0">from </span><span class="s1">test </span><span class="s0">import </span><span class="s1">test</span>
+
+
+<span class="s0">class </span><span class="s1">App:</span>
+    <span class="s0">def </span><span class="s1">__init__(self):</span>
+        <span class="s1">self.main_window = tk.Tk()</span>
+        <span class="s1">self.main_window.geometry(</span><span class="s2">&quot;1200x520+350+100&quot;</span><span class="s1">)</span>
+
+        <span class="s1">self.login_button_main_window = util.get_button(self.main_window</span><span class="s0">, </span><span class="s2">'giriş'</span><span class="s0">, </span><span class="s2">'green'</span><span class="s0">, </span><span class="s1">self.login)</span>
+        <span class="s1">self.login_button_main_window.place(x=</span><span class="s3">750</span><span class="s0">, </span><span class="s1">y=</span><span class="s3">250</span><span class="s1">)</span>
+
+
+        <span class="s1">self.register_new_user_button_main_window = util.get_button(self.main_window</span><span class="s0">, </span><span class="s2">'yeni kullanıcı kaydet'</span><span class="s0">, </span><span class="s2">'gray'</span><span class="s0">,</span>
+                                                                    <span class="s1">self.register_new_user</span><span class="s0">, </span><span class="s1">fg=</span><span class="s2">'black'</span><span class="s1">)</span>
+        <span class="s1">self.register_new_user_button_main_window.place(x=</span><span class="s3">750</span><span class="s0">, </span><span class="s1">y=</span><span class="s3">350</span><span class="s1">)</span>
+        <span class="s1">self.text_label_register_new_user = util.get_text_label(self.main_window</span><span class="s0">, </span><span class="s2">'*Hesabınız varsa Giriş botuna  tıklayın </span><span class="s0">\n</span><span class="s2">*Kamirayi açıp Kendinizi tanıtın :'</span><span class="s1">)</span>
+        <span class="s1">self.text_label_register_new_user.place(x=</span><span class="s3">710</span><span class="s0">, </span><span class="s1">y=</span><span class="s3">90</span><span class="s1">)</span>
+
+
+        <span class="s1">self.webcam_label = util.get_img_label(self.main_window)</span>
+        <span class="s1">self.webcam_label.place(x=</span><span class="s3">10</span><span class="s0">, </span><span class="s1">y=</span><span class="s3">0</span><span class="s0">, </span><span class="s1">width=</span><span class="s3">700</span><span class="s0">, </span><span class="s1">height=</span><span class="s3">500</span><span class="s1">)</span>
+        <span class="s1">self.add_webcam(self.webcam_label)</span>
+        <span class="s1">self.db_dir = </span><span class="s2">'./db'</span>
+        <span class="s0">if not </span><span class="s1">os.path.exists(self.db_dir):</span>
+            <span class="s1">os.mkdir(self.db_dir)</span>
+        <span class="s1">self.log_path = </span><span class="s2">'./log.txt'</span>
+    <span class="s0">def </span><span class="s1">add_webcam(self</span><span class="s0">, </span><span class="s1">label):</span>
+        <span class="s0">if </span><span class="s2">'cap' </span><span class="s0">not in </span><span class="s1">self.__dict__:</span>
+            <span class="s1">self.cap= cv2.VideoCapture(</span><span class="s3">0</span><span class="s1">)</span>
+
+        <span class="s1">self._label = label</span>
+        <span class="s1">self.process_webcam()</span>
+
+    <span class="s0">def </span><span class="s1">process_webcam(self):</span>
+        <span class="s1">ret</span><span class="s0">, </span><span class="s1">frame = self.cap.read()</span>
+        <span class="s1">self.most_recent_capture_arr = frame</span>
+        <span class="s1">img_ = cv2.cvtColor(self.most_recent_capture_arr</span><span class="s0">, </span><span class="s1">cv2.COLOR_BGR2RGB)</span>
+        <span class="s1">self.most_recent_capture_pil = Image.fromarray(img_)</span>
+        <span class="s1">imgtk = ImageTk.PhotoImage(image=self.most_recent_capture_pil)</span>
+        <span class="s1">self._label.imgtk = imgtk</span>
+        <span class="s1">self._label.configure(image=imgtk)</span>
+
+        <span class="s1">self._label.after(</span><span class="s3">20</span><span class="s0">, </span><span class="s1">self.process_webcam)</span>
+    <span class="s0">def </span><span class="s1">login(self):</span>
+        <span class="s1">unknown_img_path = </span><span class="s2">'./.tmp.jpg'</span>
+        <span class="s1">cv2.imwrite(unknown_img_path</span><span class="s0">, </span><span class="s1">self.most_recent_capture_arr)</span>
+
+        <span class="s1">output = str(subprocess.check_output([</span><span class="s2">'face_recognition'</span><span class="s0">, </span><span class="s1">self.db_dir</span><span class="s0">, </span><span class="s1">unknown_img_path]))</span>
+        <span class="s1">name = output.split(</span><span class="s2">','</span><span class="s1">)[</span><span class="s3">1</span><span class="s1">][:-</span><span class="s3">5</span><span class="s1">]</span>
+
+        <span class="s1">print(name)</span>
+        <span class="s0">if </span><span class="s1">name </span><span class="s0">in </span><span class="s1">[</span><span class="s2">'unknown_person'</span><span class="s0">, </span><span class="s2">'no_persons_found'</span><span class="s1">]:</span>
+            <span class="s1">util.msg_box(</span><span class="s2">'Ups...'</span><span class="s0">, </span><span class="s2">'Tanımayan kullanıcı. Lütfen yeni kullanıcı kaydedin ve tekrar deneyin.'</span><span class="s1">)</span>
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s1">util.msg_box(</span><span class="s2">'TEKRARDAN HOŞGELDİN!'</span><span class="s0">, </span><span class="s2">'Hoşgeldiniz, {}.'</span><span class="s1">.format(name))</span>
+
+            <span class="s0">with </span><span class="s1">open(self.log_path</span><span class="s0">, </span><span class="s2">'a'</span><span class="s1">) </span><span class="s0">as </span><span class="s1">f:</span>
+                <span class="s1">f.write(</span><span class="s2">'{},{},in</span><span class="s0">\n</span><span class="s2">'</span><span class="s1">.format(name</span><span class="s0">, </span><span class="s1">datetime.datetime.now()))</span>
+                <span class="s1">f.close()</span>
+
+
+
+        <span class="s1">os.remove(unknown_img_path)</span>
+
+    <span class="s0">def </span><span class="s1">register_new_user(self):</span>
+        <span class="s1">self.register_new_user_window = tk.Toplevel(self.main_window)</span>
+        <span class="s1">self.register_new_user_window.geometry(</span><span class="s2">&quot;1200x520+370+120&quot;</span><span class="s1">)</span>
+
+        <span class="s1">self.accept_button_register_new_user_window = util.get_button(self.register_new_user_window</span><span class="s0">, </span><span class="s2">'Kabul edin'</span><span class="s0">, </span><span class="s2">'green'</span><span class="s0">, </span><span class="s1">self.accept_register_new_user)</span>
+        <span class="s1">self.accept_button_register_new_user_window.place(x=</span><span class="s3">750</span><span class="s0">, </span><span class="s1">y=</span><span class="s3">300</span><span class="s1">)</span>
+
+        <span class="s1">self.try_again_button_register_new_user_window = util.get_button(self.register_new_user_window</span><span class="s0">, </span><span class="s2">'Tekrar deneyin'</span><span class="s0">, </span><span class="s2">'red'</span><span class="s0">, </span><span class="s1">self.try_again_register_new_user)</span>
+        <span class="s1">self.try_again_button_register_new_user_window.place(x=</span><span class="s3">750</span><span class="s0">, </span><span class="s1">y=</span><span class="s3">400</span><span class="s1">)</span>
+
+        <span class="s1">self.capture_label = util.get_img_label(self.register_new_user_window)</span>
+        <span class="s1">self.capture_label.place(x=</span><span class="s3">10</span><span class="s0">, </span><span class="s1">y=</span><span class="s3">0</span><span class="s0">, </span><span class="s1">width=</span><span class="s3">700</span><span class="s0">, </span><span class="s1">height=</span><span class="s3">500</span><span class="s1">)</span>
+
+        <span class="s1">self.add_img_to_label(self.capture_label)</span>
+        <span class="s1">self.entry_text_register_new_user = util.get_entry_text(self.register_new_user_window)</span>
+        <span class="s1">self.entry_text_register_new_user.place(x=</span><span class="s3">750</span><span class="s0">, </span><span class="s1">y=</span><span class="s3">150</span><span class="s1">)</span>
+
+        <span class="s1">self.text_label_register_new_user = util.get_text_label(self.register_new_user_window</span><span class="s0">, </span><span class="s2">'Lütfen: </span><span class="s0">\n</span><span class="s2">Kendinizi tanıtın :'</span><span class="s1">)</span>
+        <span class="s1">self.text_label_register_new_user.place(x=</span><span class="s3">750</span><span class="s0">, </span><span class="s1">y=</span><span class="s3">70</span><span class="s1">)</span>
+
+    <span class="s0">def </span><span class="s1">try_again_register_new_user(self):</span>
+        <span class="s1">self.register_new_user_window.destroy()</span>
+
+    <span class="s0">def </span><span class="s1">add_img_to_label(self</span><span class="s0">, </span><span class="s1">label):</span>
+        <span class="s1">imgtk = ImageTk.PhotoImage(image=self.most_recent_capture_pil)</span>
+        <span class="s1">label.imgtk = imgtk</span>
+        <span class="s1">label.configure(image=imgtk)</span>
+        <span class="s1">self.register_new_user_capture = self.most_recent_capture_arr.copy()</span>
+
+    <span class="s0">def </span><span class="s1">start(self):</span>
+        <span class="s1">self.main_window.mainloop()</span>
+
+    <span class="s0">def </span><span class="s1">accept_register_new_user(self):</span>
+        <span class="s1">name = self.entry_text_register_new_user.get(</span><span class="s3">1.0</span><span class="s0">, </span><span class="s2">&quot;end-1c&quot;</span><span class="s1">)</span>
+        <span class="s1">cv2.imwrite(os.path.join(self.db_dir</span><span class="s0">, </span><span class="s2">'{}.png'</span><span class="s1">.format(name))</span><span class="s0">, </span><span class="s1">self.register_new_user_capture)</span>
+
+
+        <span class="s1">util.msg_box(</span><span class="s2">'Kullanıcı kaydedildi!'</span><span class="s0">, </span><span class="s2">'Yüz tanıma başarıyla gerçekleşti! '</span><span class="s1">)</span>
+
+
+        <span class="s1">self.register_new_user_window.destroy()</span>
+
+
+
+
+
+<span class="s0">if </span><span class="s1">__name__ == </span><span class="s2">&quot;__main__&quot;</span><span class="s1">:</span>
+    <span class="s1">app = App()</span>
+    <span class="s1">app.start()</span>
+</pre>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<html>
+<head>
+<title>util.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #6897bb;}
+.s4 { color: #808080;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+util.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">os</span>
+<span class="s0">import </span><span class="s1">pickle</span>
+
+<span class="s0">import </span><span class="s1">tkinter </span><span class="s0">as </span><span class="s1">tk</span>
+<span class="s0">from </span><span class="s1">tkinter </span><span class="s0">import </span><span class="s1">messagebox</span>
+<span class="s0">import </span><span class="s1">face_recognition</span>
+
+
+<span class="s0">def </span><span class="s1">get_button(window</span><span class="s0">, </span><span class="s1">text</span><span class="s0">, </span><span class="s1">color</span><span class="s0">, </span><span class="s1">command</span><span class="s0">, </span><span class="s1">fg=</span><span class="s2">'white'</span><span class="s1">):</span>
+    <span class="s1">button = tk.Button(</span>
+                        <span class="s1">window</span><span class="s0">,</span>
+                        <span class="s1">text=text</span><span class="s0">,</span>
+                        <span class="s1">activebackground=</span><span class="s2">&quot;black&quot;</span><span class="s0">,</span>
+                        <span class="s1">activeforeground=</span><span class="s2">&quot;white&quot;</span><span class="s0">,</span>
+                        <span class="s1">fg=fg</span><span class="s0">,</span>
+                        <span class="s1">bg=color</span><span class="s0">,</span>
+                        <span class="s1">command=command</span><span class="s0">,</span>
+                        <span class="s1">height=</span><span class="s3">2</span><span class="s0">,</span>
+                        <span class="s1">width=</span><span class="s3">20</span><span class="s0">,</span>
+                        <span class="s1">font=(</span><span class="s2">'Helvetica bold'</span><span class="s0">, </span><span class="s3">20</span><span class="s1">)</span>
+                    <span class="s1">)</span>
+
+    <span class="s0">return </span><span class="s1">button</span>
+
+
+<span class="s0">def </span><span class="s1">get_img_label(window):</span>
+    <span class="s1">label = tk.Label(window)</span>
+    <span class="s1">label.grid(row=</span><span class="s3">0</span><span class="s0">, </span><span class="s1">column=</span><span class="s3">0</span><span class="s1">)</span>
+    <span class="s0">return </span><span class="s1">label</span>
+
+
+<span class="s0">def </span><span class="s1">get_text_label(window</span><span class="s0">, </span><span class="s1">text):</span>
+    <span class="s1">label = tk.Label(window</span><span class="s0">, </span><span class="s1">text=text)</span>
+    <span class="s1">label.config(font=(</span><span class="s2">&quot;sans-serif&quot;</span><span class="s0">, </span><span class="s3">21</span><span class="s1">)</span><span class="s0">, </span><span class="s1">justify=</span><span class="s2">&quot;left&quot;</span><span class="s1">)</span>
+    <span class="s0">return </span><span class="s1">label</span>
+
+
+<span class="s0">def </span><span class="s1">get_entry_text(window):</span>
+    <span class="s1">inputtxt = tk.Text(window</span><span class="s0">,</span>
+                       <span class="s1">height=</span><span class="s3">2</span><span class="s0">,</span>
+                       <span class="s1">width=</span><span class="s3">15</span><span class="s0">, </span><span class="s1">font=(</span><span class="s2">&quot;Arial&quot;</span><span class="s0">, </span><span class="s3">32</span><span class="s1">))</span>
+    <span class="s0">return </span><span class="s1">inputtxt</span>
+
+
+<span class="s0">def </span><span class="s1">msg_box(title</span><span class="s0">, </span><span class="s1">description):</span>
+    <span class="s1">messagebox.showinfo(title</span><span class="s0">, </span><span class="s1">description)</span>
+
+
+<span class="s0">def </span><span class="s1">recognize(img</span><span class="s0">, </span><span class="s1">db_path):</span>
+    <span class="s4"># it is assumed there will be at most 1 match in the db</span>
+
+    <span class="s1">embeddings_unknown = face_recognition.face_encodings(img)</span>
+    <span class="s0">if </span><span class="s1">len(embeddings_unknown) == </span><span class="s3">0</span><span class="s1">:</span>
+        <span class="s0">return </span><span class="s2">'no_persons_found'</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">embeddings_unknown = embeddings_unknown[</span><span class="s3">0</span><span class="s1">]</span>
+
+    <span class="s1">db_dir = sorted(os.listdir(db_path))</span>
+
+    <span class="s1">match = </span><span class="s0">False</span>
+    <span class="s1">j = </span><span class="s3">0</span>
+    <span class="s0">while not </span><span class="s1">match </span><span class="s0">and </span><span class="s1">j &lt; len(db_dir):</span>
+        <span class="s1">path_ = os.path.join(db_path</span><span class="s0">, </span><span class="s1">db_dir[j])</span>
+
+        <span class="s1">file = open(path_</span><span class="s0">, </span><span class="s2">'rb'</span><span class="s1">)</span>
+        <span class="s1">embeddings = pickle.load(file)</span>
+
+        <span class="s1">match = face_recognition.compare_faces([embeddings]</span><span class="s0">, </span><span class="s1">embeddings_unknown)[</span><span class="s3">0</span><span class="s1">]</span>
+        <span class="s1">j += </span><span class="s3">1</span>
+
+    <span class="s0">if </span><span class="s1">match:</span>
+        <span class="s0">return </span><span class="s1">db_dir[j - </span><span class="s3">1</span><span class="s1">][:-</span><span class="s3">7</span><span class="s1">]</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s0">return </span><span class="s2">'unknown_person'</span>
+
+</pre>
+</body>
+</html>
