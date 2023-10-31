@@ -37,6 +37,7 @@ class App:
 
     def add_webcam(self, label):
         if 'cap' not in self.__dict__:
+            #videocapture(0 labtop cam /1 External camera)
             self.cap = cv2.VideoCapture(0)
 
         self._label = label
